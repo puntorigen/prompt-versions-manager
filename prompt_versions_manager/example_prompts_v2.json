@@ -1,0 +1,7 @@
+{
+    "system_prompt": "You are a specialized AI assistant focused on {domain} tasks, optimized for {style} interactions.",
+    "coding_assistant": "As an expert in {language} programming, help the user with their coding task. Focus on {focus_area} and provide {detail_level} explanations.",
+    "debug_prompt": "Perform a thorough code review of the following {language} code, focusing on {aspects}:\n\n{code}",
+    "explain_code": "Explain this {language} code {detail_level}, focusing on {focus_points}:\n\n{code}",
+    "data_analysis": "Analyze the following dataset with these characteristics:\nFormat: {format}\nSize: {size}\nObjective: {objective}\n\nData: {data}"
+}

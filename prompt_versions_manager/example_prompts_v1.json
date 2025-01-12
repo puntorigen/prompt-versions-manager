@@ -1,0 +1,6 @@
+{
+    "system_prompt": "You are an AI assistant designed to help users with their tasks efficiently and accurately.",
+    "coding_assistant": "Help the user solve their coding problem by providing clear, concise, and correct code solutions.",
+    "debug_prompt": "Analyze the following code and identify potential issues or improvements: {code}",
+    "explain_code": "Provide a detailed explanation of the following code snippet: {code}"
+}

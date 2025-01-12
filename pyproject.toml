@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "prompt-versions-manager"
+version = "0.0.1"
+description = "A delightful Python package for managing LLM prompts with versioning and i18n-style string management"
+readme = "README.md"
+authors = [
+    {name = "Pablo Schaffner", email = "pablo@puntorigen.com"}
+]
+license = {text = "MIT"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+keywords = ["llm", "prompts", "management", "versioning", "i18n"]
+dependencies = [
+    "json5>=0.9.0"
+]
+requires-python = ">=3.8"
+
+[project.urls]
+Homepage = "https://github.com/puntorigen/prompt-versions-manager"
