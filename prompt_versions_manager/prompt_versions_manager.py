@@ -94,22 +94,38 @@ class PromptVersionsManager:
         
         return prompt_template
 
-    def set(self, prompt_id: str, value: str) -> 'PromptVersionsManager':
+    def set(self, prompt_id: str, value: str, overwrite: bool = False) -> 'PromptVersionsManager':
         """
         Set or update a prompt value for the current version.
         The prompt_id can include placeholders - they will be stripped automatically.
         The value can include placeholders for later formatting with t().
         
+        Args:
+            prompt_id: The ID/key for the prompt. Can include placeholders like {name}.
+            value: The prompt template value. Can include placeholders for later formatting.
+            overwrite: If False (default), raises ValueError if prompt_id already exists.
+                      If True, allows overwriting existing prompts.
+        
         Example:
-            p.set("greeting.{name}", "Hello {name}!")
-            p.t("greeting", name="Alice")  # Returns: "Hello Alice!"
+            p.set("greeting.{name}", "Hello {name}!")  # Sets new prompt
+            p.set("greeting", "Hi {name}!")  # Raises ValueError
+            p.set("greeting", "Hi {name}!", overwrite=True)  # Updates existing prompt
         
         Returns self for method chaining.
+        Raises ValueError if trying to overwrite existing prompt without overwrite=True.
         """
         if self._current_version not in self._prompt_cache:
             self._prompt_cache[self._current_version] = {}
             
         clean_key = self._clean_key(prompt_id)
+        
+        # Check if prompt exists and protect against accidental overwrites
+        if not overwrite and clean_key in self._prompt_cache[self._current_version]:
+            raise ValueError(
+                f"Prompt '{clean_key}' already exists in version '{self._current_version}'. "
+                "Set overwrite=True to update it."
+            )
+            
         self._prompt_cache[self._current_version][clean_key] = value
         self._save_version(self._current_version)
         return self

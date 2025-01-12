@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prompt-versions-manager"
-version = "0.0.1"
+version = "0.0.2"
 description = "A delightful Python package for managing LLM prompts with versioning and i18n-style string management"
 readme = "README.md"
 authors = [

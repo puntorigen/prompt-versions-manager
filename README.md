@@ -49,6 +49,22 @@ p.version("llama2").set(
     "You are Llama 2, an AI assistant trained by Meta. Provide direct, factual responses and always maintain a helpful and respectful tone."
 )
 
+# Attempting to overwrite without permission will raise an error
+try:
+    p.version("gpt4").set(
+        "system.role",
+        "A different system role"  # This will raise ValueError
+    )
+except ValueError as e:
+    print(e)  # Prompt 'system.role' already exists in version 'gpt4'. Set overwrite=True to update it.
+
+# To update an existing prompt, explicitly set overwrite=True
+p.version("gpt4").set(
+    "system.role",
+    "You are GPT-4, an advanced AI model. You excel at complex reasoning and provide detailed, accurate responses.",
+    overwrite=True  # Now it will update the existing prompt
+)
+
 # Now you can get model-specific responses using the same prompt key
 gpt4_response = p.version("gpt4").t("system.role")
 claude_response = p.version("claude").t("system.role")
@@ -57,7 +73,7 @@ llama_response = p.version("llama2").t("system.role")
 # Get all versions of the same prompt key
 versions = p.get_all_versions("system.role")
 # Returns: [
-#   {"version": "gpt4", "value": "You are GPT-4, a large language model..."},
+#   {"version": "gpt4", "value": "You are GPT-4, an advanced AI model..."},
 #   {"version": "claude", "value": "You are Claude, an AI assistant..."},
 #   {"version": "llama2", "value": "You are Llama 2, an AI assistant..."}
 # ]
@@ -76,16 +92,27 @@ chat.version("formal").set(
     "assist.task",
     "I understand you need assistance with {task}. Let me analyze your requirements: {requirements}"
 )
+
 chat.version("casual").set(
     "assist.task",
     "I'll help you with {task}! Looking at your requirements: {requirements}"
 )
+
+# Try to modify an existing prompt (will fail without overwrite=True)
+try:
+    chat.version("formal").set(
+        "assist.task",
+        "Let me help you with {task}. Your requirements are: {requirements}"
+    )
+except ValueError:
+    print("Cannot overwrite existing prompt without overwrite=True")
 
 # Set different versions of the same code review prompt
 code.version("detailed").set(
     "review.code",
     "I'll perform a comprehensive review of your {language} code, analyzing: architecture, performance, security, and best practices."
 )
+
 code.version("quick").set(
     "review.code",
     "I'll do a quick review of your {language} code, focusing on critical issues and basic improvements."
@@ -158,6 +185,22 @@ p.version("simple").set(
     "Look at this {language} code and suggest simple ways to make it better, especially regarding {aspect}."
 )
 
+# Attempting to overwrite without permission will raise an error
+try:
+    p.version("technical").set(
+        "analyze.code",
+        "A different analysis prompt"  # This will raise ValueError
+    )
+except ValueError as e:
+    print(e)  # Prompt 'analyze.code' already exists in version 'technical'. Set overwrite=True to update it.
+
+# To update an existing prompt, explicitly set overwrite=True
+p.version("technical").set(
+    "analyze.code",
+    "Perform a technical analysis of this {language} code, focusing on {aspect}. Provide specific recommendations for improvement.",
+    overwrite=True  # Now it will update the existing prompt
+)
+
 # Use different versions of the same prompt
 technical_review = p.version("technical").t("analyze.code",
                                           language="Python",
@@ -212,9 +255,11 @@ prompts/
 ├── chat/                # Chat prompts
 │   ├── formal.json
 │   └── casual.json
-└── code/               # Code assistance prompts
-    ├── detailed.json
-    └── quick.json
+├── code/               # Code assistance prompts
+│   ├── detailed.json
+│   └── quick.json
+└── default/
+    └── v1.json
 ```
 
 Example `chat/formal.json`:

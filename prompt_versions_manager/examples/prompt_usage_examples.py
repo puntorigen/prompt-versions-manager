@@ -6,100 +6,108 @@ def basic_usage_example():
     prompts = PromptVersionsManager()
     
     # Basic usage with default version (v1)
-    system_prompt = prompts.t("system_prompt")
-    print("Default System Prompt:", system_prompt)
+    prompts.set("system.role", 
+        "You are a helpful AI assistant. Always provide clear and concise responses.")
+    print("Default System Role:", prompts.t("system.role"))
     
-    # Using a prompt with placeholders
-    welcome = prompts.t("welcome.message.{name}", name="John")
-    print("\nWelcome message:", welcome)
-    # The key in the JSON will be "welcome.message" and value will be "welcome.message.{name}"
+    # Try to modify the prompt (will raise error)
+    try:
+        prompts.set("system.role", "A different system role")
+        print("This line won't be reached")
+    except ValueError as e:
+        print("\nOverwrite protection:", str(e))
     
-    # Reuse the same prompt with different variables
-    welcome_alice = prompts.t("welcome.message", name="Alice")
-    print("Welcome message for Alice:", welcome_alice)
+    # Properly update an existing prompt
+    prompts.set("system.role", 
+        "You are an AI assistant focused on clarity and precision. Provide step-by-step explanations when helpful.",
+        overwrite=True)
+    print("\nUpdated System Role:", prompts.t("system.role"))
     
-    # Switch version and use complex prompt
-    complex_prompt = (prompts.version("v2")
-                      .t("debug.code.{language}.{aspect}",
-                         language="Python",
-                         aspect="performance"))
-    print("\nComplex prompt:", complex_prompt)
-    # The key in v2.json will be "debug.code" with placeholders in value
+    # Using prompts with placeholders
+    prompts.set("expert.role", 
+        "You are an expert in {field} with {years} years of experience. Focus on {specialization}.")
+    
+    expert_prompt = prompts.t("expert.role",
+                            field="machine learning",
+                            years="10",
+                            specialization="neural networks")
+    print("\nExpert Role:", expert_prompt)
 
 def named_managers_example():
     """Example of using multiple prompt managers for different use cases"""
     # Setup managers for different use cases
     chat = PromptVersionsManager.setup("chat")
-    email = PromptVersionsManager.setup("email")
+    code = PromptVersionsManager.setup("code")
     
-    # Chat prompts
-    chat.set("greeting", "Hey {name}! How can I help you today?")
-    chat.set("farewell", "Thanks for chatting, {name}! Have a great day!")
+    # Chat prompts with different formality levels
+    chat.version("formal").set("assist.task", 
+        "I understand you need assistance with {task}. Let me analyze your requirements: {requirements}")
     
-    # Email prompts
-    email.set("subject.welcome", "Welcome to our service, {name}!")
-    email.set("body.welcome", """
-Dear {name},
-
-Thank you for joining our service! We're excited to have you on board.
-
-Best regards,
-The Team
-""")
+    chat.version("casual").set("assist.task",
+        "I'll help you with {task}! Looking at your requirements: {requirements}")
     
-    # Use chat prompts
+    # Code review prompts with different detail levels
+    code.version("detailed").set("review.code",
+        """Perform a comprehensive review of this {language} code, analyzing:
+        1. Architecture and design patterns
+        2. Performance optimizations
+        3. Security considerations
+        4. Best practices and conventions
+        5. Error handling and edge cases""")
+    
+    code.version("quick").set("review.code",
+        "I'll do a quick review of your {language} code, focusing on critical issues and basic improvements.")
+    
+    # Use chat prompts with different formality
     print("=== Chat Prompts ===")
-    print(chat.t("greeting", name="Alice"))
-    print(chat.t("farewell", name="Alice"))
+    print("Formal:", chat.version("formal").t("assist.task",
+        task="data analysis",
+        requirements="must be scalable and maintainable"))
     
-    # Use email prompts
-    print("\n=== Email Prompts ===")
-    print(email.t("subject.welcome", name="Bob"))
-    print(email.t("body.welcome", name="Bob"))
+    print("\nCasual:", chat.version("casual").t("assist.task",
+        task="data analysis",
+        requirements="must be scalable and maintainable"))
     
-    # Show available versions for each manager
-    print("\n=== Available Versions ===")
-    print("Chat versions:", chat.versions())
-    print("Email versions:", email.versions())
+    # Use code review prompts with different detail levels
+    print("\n=== Code Review Prompts ===")
+    print("Detailed:", code.version("detailed").t("review.code", language="Python"))
+    print("\nQuick:", code.version("quick").t("review.code", language="Python"))
 
 def versioning_example():
-    """Example of working with different prompt versions"""
+    """Example of working with different prompt versions for different LLM models"""
     # Setup with custom prompts directory
-    p = PromptVersionsManager.setup("dev", 
-        prompts_dir="./dev_prompts",
-        default_version="dev"
+    p = PromptVersionsManager.setup("models", 
+        prompts_dir="./model_prompts",
+        default_version="gpt4"
     )
     
-    # Create different versions of a prompt
-    p.version("v1").set("intro.{role}", "You are a {role}")
-    p.version("v2").set("intro.{role}", "You are now acting as a {role}")
-    p.version("v3").set("intro.{role}", "I want you to take on the role of a {role}")
+    # Set system prompts for different models
+    p.version("gpt4").set("system.role",
+        "You are GPT-4, a large language model trained by OpenAI. Follow instructions carefully and format responses appropriately.")
     
-    # Get all versions with placeholders filled in
-    versions = p.get_all_versions("intro.{role}", role="helpful assistant")
-    print("=== All Versions of Intro Prompt ===")
+    p.version("claude").set("system.role",
+        "You are Claude, an AI assistant created by Anthropic to be helpful, harmless, and honest.")
+    
+    p.version("llama2").set("system.role",
+        "You are Llama 2, an AI assistant trained by Meta. Provide direct, factual responses while maintaining a helpful tone.")
+    
+    # Try to modify GPT-4's system role (will fail)
+    try:
+        p.version("gpt4").set("system.role", "A different system role")
+    except ValueError as e:
+        print("=== Overwrite Protection ===")
+        print(str(e))
+    
+    # Properly update GPT-4's system role
+    p.version("gpt4").set("system.role",
+        "You are GPT-4, an advanced AI model. Excel at complex reasoning and provide detailed, accurate responses.",
+        overwrite=True)
+    
+    # Get all versions of the system role
+    versions = p.get_all_versions("system.role")
+    print("\n=== System Roles Across Models ===")
     for v in versions:
-        print(f"{v['version']}: {v['value']}")
-    
-    # Create prompts with different placeholders
-    p.version("v1").set("task.{language}", "Write code in {language}")
-    p.version("v2").set("task.{language}.{task}", "Write {language} code to {task}")
-    
-    # Get versions that match the given placeholders
-    versions = p.get_all_versions("task.{language}", language="Python")
-    print("\n=== Matching Versions of Task Prompt ===")
-    for v in versions:
-        print(f"{v['version']}: {v['value']}")
-    
-    # The v2 version won't be included since it requires an additional 'task' parameter
-    
-    # Get versions with all required placeholders
-    versions = p.get_all_versions("task.{language}.{task}", 
-                                language="Python",
-                                task="sort a list")
-    print("\n=== All Task Versions with Full Context ===")
-    for v in versions:
-        print(f"{v['version']}: {v['value']}")
+        print(f"\n{v['version']}:", v['value'])
 
 def fastapi_integration_example():
     """Example of using prompt manager in a FastAPI application"""
@@ -107,7 +115,7 @@ def fastapi_integration_example():
     
     app = FastAPI()
     chat = PromptVersionsManager("chat")
-    email = PromptVersionsManager("email")
+    code = PromptVersionsManager("code")
     
     @app.get("/prompts/{manager}/{version}/{prompt_id}")
     async def get_prompt(manager: str, version: str, prompt_id: str, **params):
