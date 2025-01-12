@@ -8,7 +8,7 @@ version = "0.0.2"
 description = "A delightful Python package for managing LLM prompts with versioning and i18n-style string management"
 readme = "README.md"
 authors = [
-    { name = "Pablo Schaffner", email = "pablo@codeium.com" }
+    { name = "Pablo Schaffner", email = "pablo@puntorigen.com" }
 ]
 license = { text = "MIT" }
 requires-python = ">=3.9"
