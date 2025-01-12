@@ -2,6 +2,16 @@
 
 A delightful Python package for managing LLM prompts with versioning and i18n-style string management. Perfect for keeping your AI conversations organized and maintainable!
 
+## Installation 📦
+
+You can install the package directly from PyPI using pip:
+
+```bash
+pip install prompt-versions-manager
+```
+
+That's it! Now you can start using the package in your Python projects.
+
 ## Why Prompt Versions Manager?
 
 Managing prompts for Large Language Models can quickly become messy. As your application grows, you might find yourself:
@@ -158,12 +168,6 @@ Example `chat/v1.json`:
   "greeting": "Hey {name}! How can I help?",
   "farewell": "Thanks {name}! Have a great day!"
 }
-```
-
-## Installation 📦
-
-```bash
-pip install prompt-versions-manager
 ```
 
 ## Contributing 🤝
