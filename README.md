@@ -84,8 +84,8 @@ Use named managers to handle different types of prompts, each with their own ver
 
 ```python
 # Setup managers for different use cases
-chat = PromptVersionsManager.setup("chat")
-code = PromptVersionsManager.setup("code")
+chat = PromptVersionsManager("chat")
+code = PromptVersionsManager("code")
 
 # Set different versions of the same chat prompt
 chat.version("formal").set(
