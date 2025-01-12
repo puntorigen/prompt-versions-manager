@@ -20,5 +20,5 @@ classifiers = [
 keywords = ["prompt", "llm", "management", "versioning", "i18n"]
 
 [project.urls]
-"Homepage" = "https://github.com/pschfr/prompt-versions-manager"
-"Bug Tracker" = "https://github.com/pschfr/prompt-versions-manager/issues"
+"Homepage" = "https://github.com/puntorigen/prompt-versions-manager"
+"Bug Tracker" = "https://github.com/puntorigen/prompt-versions-manager/issues"
