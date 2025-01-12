@@ -26,55 +26,93 @@ Prompt Versions Manager solves these problems by providing an elegant, i18n-insp
 ## Use Cases 💡
 
 ### Multi-Model Prompt Management
-Use versions to maintain model-specific prompts. For example:
+Use versions to maintain model-specific prompts for the same instructions. For example:
 
 ```python
 from prompt_versions_manager import PromptVersionsManager
 
 p = PromptVersionsManager()
 
-# GPT-4 specific prompt
+# First, set different prompt values for the same key for each model version
+p.version("gpt4").set(
+    "system.role",
+    "You are GPT-4, a large language model trained by OpenAI. Follow the user's instructions carefully and format responses appropriately."
+)
+
+p.version("claude").set(
+    "system.role",
+    "You are Claude, an AI assistant created by Anthropic to be helpful, harmless, and honest. Always approach tasks thoughtfully and aim to provide accurate, nuanced responses."
+)
+
+p.version("llama2").set(
+    "system.role",
+    "You are Llama 2, an AI assistant trained by Meta. Provide direct, factual responses and always maintain a helpful and respectful tone."
+)
+
+# Now you can get model-specific responses using the same prompt key
 gpt4_response = p.version("gpt4").t("system.role")
-
-# Claude specific prompt
 claude_response = p.version("claude").t("system.role")
-
-# Llama2 specific prompt
 llama_response = p.version("llama2").t("system.role")
 
-# Get all versions for LLM scoring
+# Get all versions of the same prompt key
 versions = p.get_all_versions("system.role")
 # Returns: [
-#   {"version": "claude", "value": "You are Claude, an AI assistant..."},
 #   {"version": "gpt4", "value": "You are GPT-4, a large language model..."},
-#   {"version": "llama2", "value": "You are Llama 2, an open-source AI..."}
+#   {"version": "claude", "value": "You are Claude, an AI assistant..."},
+#   {"version": "llama2", "value": "You are Llama 2, an AI assistant..."}
 # ]
 ```
 
 ### Multiple Prompt Sets
-Use named managers to handle different types of prompts in your project:
+Use named managers to handle different types of prompts, each with their own versions:
 
 ```python
 # Setup managers for different use cases
 chat = PromptVersionsManager.setup("chat")
-email = PromptVersionsManager.setup("email")
+code = PromptVersionsManager.setup("code")
 
-# Chat prompts in prompts/chat/v1.json
-chat.set("greeting", "Hey {name}! How can I help?")
+# Set different versions of the same chat prompt
+chat.version("formal").set(
+    "assist.task",
+    "I understand you need assistance with {task}. Let me analyze your requirements: {requirements}"
+)
+chat.version("casual").set(
+    "assist.task",
+    "I'll help you with {task}! Looking at your requirements: {requirements}"
+)
 
-# Email prompts in prompts/email/v1.json
-email.set("welcome", "Dear {name}, Welcome aboard!")
+# Set different versions of the same code review prompt
+code.version("detailed").set(
+    "review.code",
+    "I'll perform a comprehensive review of your {language} code, analyzing: architecture, performance, security, and best practices."
+)
+code.version("quick").set(
+    "review.code",
+    "I'll do a quick review of your {language} code, focusing on critical issues and basic improvements."
+)
+
+# Use the same prompt keys with different versions
+formal_response = chat.version("formal").t("assist.task", 
+    task="data analysis", 
+    requirements="must be scalable")
+
+casual_response = chat.version("casual").t("assist.task",
+    task="data analysis",
+    requirements="must be scalable")
+
+detailed_review = code.version("detailed").t("review.code", language="Python")
+quick_review = code.version("quick").t("review.code", language="Python")
 ```
 
 Your `prompts` directory could look like:
 ```
 prompts/
 ├── chat/
-│   ├── v1.json
-│   └── v2.json
-├── email/
-│   ├── v1.json
-│   └── v2.json
+│   ├── formal.json
+│   └── casual.json
+├── code/
+│   ├── detailed.json
+│   └── quick.json
 └── default/
     └── v1.json
 ```
@@ -97,26 +135,43 @@ from prompt_versions_manager import PromptVersionsManager
 # Get the default prompt manager
 p = PromptVersionsManager()
 
-# Use prompts with variables
-welcome = p.t("welcome.message.{name}", name="Alice")
-# Creates and returns: "welcome.message.Alice"
+# Set a prompt with placeholders
+p.set(
+    "introduce.expert",
+    "I am a highly knowledgeable {field} expert with {years} years of experience. I can provide detailed, accurate information about {specialization}."
+)
 
-# Update existing prompts
-p.set("welcome.message", "Hello {name}! Welcome aboard!")
-welcome = p.t("welcome.message", name="Alice")
-# Returns: "Hello Alice! Welcome aboard!"
+# Use the prompt with different parameters
+ml_expert = p.t("introduce.expert",
+                field="machine learning",
+                years="10",
+                specialization="neural networks")
 
-# Switch versions
-complex_prompt = (p.version("v2")
-                  .t("debug.code.{language}.{aspect}",
-                     language="Python",
-                     aspect="performance"))
+# Set different versions of the same prompt
+p.version("technical").set(
+    "analyze.code",
+    "Perform a technical analysis of this {language} code, focusing on {aspect}. Provide specific recommendations for improvement."
+)
+
+p.version("simple").set(
+    "analyze.code",
+    "Look at this {language} code and suggest simple ways to make it better, especially regarding {aspect}."
+)
+
+# Use different versions of the same prompt
+technical_review = p.version("technical").t("analyze.code",
+                                          language="Python",
+                                          aspect="performance")
+
+simple_review = p.version("simple").t("analyze.code",
+                                    language="Python",
+                                    aspect="performance")
 
 # List all versions
-versions = p.versions()  # ['v1', 'v2']
+versions = p.versions()  # ['technical', 'simple']
 
-# Find all versions of a prompt
-welcome_versions = p.versions_for("welcome.message")
+# Find all versions of a specific prompt
+analysis_versions = p.versions_for("analyze.code")
 ```
 
 ## FastAPI Integration 🌐
@@ -127,7 +182,7 @@ from prompt_versions_manager import PromptVersionsManager
 
 app = FastAPI()
 chat = PromptVersionsManager("chat")
-email = PromptVersionsManager("email")
+code = PromptVersionsManager("code")
 
 @app.get("/prompts/{manager}/{version}/{prompt_id}")
 async def get_prompt(manager: str, version: str, prompt_id: str, **params):
@@ -150,23 +205,23 @@ export PROMPT_VERSION="v1"            # Default version
 
 ## Directory Structure 📁
 
-Each named manager gets its own subdirectory:
+Each named manager gets its own subdirectory with version-specific files:
 
 ```
 prompts/
 ├── chat/                # Chat prompts
-│   ├── v1.json
-│   └── v2.json
-└── email/              # Email prompts
-    ├── v1.json
-    └── v2.json
+│   ├── formal.json
+│   └── casual.json
+└── code/               # Code assistance prompts
+    ├── detailed.json
+    └── quick.json
 ```
 
-Example `chat/v1.json`:
+Example `chat/formal.json`:
 ```json
 {
-  "greeting": "Hey {name}! How can I help?",
-  "farewell": "Thanks {name}! Have a great day!"
+  "assist.task": "I understand you need assistance with {task}. Let me analyze your requirements: {requirements}",
+  "introduce.expert": "I am a highly knowledgeable {field} expert with {years} years of experience. I can provide detailed, accurate information about {specialization}."
 }
 ```
 
